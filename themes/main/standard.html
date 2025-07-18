@@ -1,35 +1,130 @@
-{% extends "base/standard.html" %} {% block head %}
+{% extends "base/standard.html" %} 
+{% block head %}
 {{ super() }}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
-{% endblock %} {% block content %}
+<style>
+.card {
+    position: relative;
+    overflow: hidden;
+    height: 250px;
+}
+.card-header {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    background-color: white;
+    transition: transform 0.3s ease;
+    border-top: 1px solid rgba(0,0,0,0.125);
+}
+.card-header.expanded {
+    transform: translateY(-175px);
+}
+.picture-section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: calc(100% - 60px); /* Leave space for the header */
+    transition: opacity 0.3s ease;
+}
+.picture-section.hidden {
+    opacity: 0.2;
+}
+.card-description {
+    position: absolute;
+    bottom: 50px; /* Position above the original header position */
+    left: 0;
+    right: 0;
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    padding: 0 1rem;
+    z-index: 1; /* Behind the header */
+}
+.card-description.show {
+    height: 125px; /* Reduced height to fit better */
+    opacity: 1;
+    padding: 1rem;
+    bottom: 50px; /* Keep it positioned above where header was */
+}
+.expand-icon {
+    transition: transform 0.3s ease;
+}
+.expand-icon.rotated {
+    transform: rotate(180deg);
+}
+</style>
+{% endblock %} 
+{% block content %}
 {{ super()}}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">SiteBook</a>
-        <!-- {% if searchBar %}
-        TODO: Add search bar
-        {% endif %} -->
-        <a class="btn btn-outline-light ms-auto" href="/settings" role="button">
-            <i class="bi bi-gear"></i> Settings
-        </a>
-    </div>
-</nav>
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        {% for entry in entries %}
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">{{ entry.title }}</h5>
-                    {% if entry.description %}
-                        <p class="card-text">{{ entry.description }}</p>
+<div class="container-fluid px-4 mt-4">
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 row-cols-xl-8 g-3 justify-content-center">
+        {% for name, entry in entries.items() %}
+            <div class="col">
+                <div class="card shadow-sm border-0">
+                    <!-- Picture section -->
+                    <div class="bg-light d-flex align-items-center justify-content-center p-3 picture-section">
+                        {% if entry.get("picture") %}
+                            <img src="{{ entry.get('picture') }}" alt="{{ name }}" class="img-fluid rounded" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                        {% else %}
+                            <div class="text-muted">
+                                <i class="bi bi-image" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Title and buttons section (initially at bottom) -->
+                    <div class="card-header border-0 d-flex align-items-center justify-content-between p-3">
+                        <span class="text-dark fw-medium text-truncate me-3 flex-grow-1" style="font-size: 1rem;">{{ name }}</span>
+                        <div class="d-flex gap-1">
+                            {% if entry.get("description") %}
+                                <button class="btn btn-sm p-1" onclick="toggleDescription(this)" style="font-size: 0.7rem;">
+                                    <i class="material-symbols-outlined expand-icon">keyboard_arrow_up</i>
+                                </button>
+                            {% endif %}
+                            {% if entry.get("url") %}
+                                <a class="btn btn-primary p-1" href="{{ entry.get('url') }}" target="_blank" style="font-size: 0.9rem;">
+                                    <i class="material-symbols-outlined">open_in_new</i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Description section (hidden by default) -->
+                    {% if entry.get("description") %}
+                        <div class="card-description bg-light">
+                            <p class="mb-0" style="font-size: 0.8rem;">{{ entry.get("description") }}</p>
+                        </div>
                     {% endif %}
-                    <a class="btn btn-primary" href="{{ entry.url }}" target="_blank">
-                        <i class="bi bi-box-arrow-up-right"></i> Open
-                    </a>
                 </div>
             </div>
         {% endfor %}
     </div>
 </div>
+
+<script>
+function toggleDescription(button) {
+    const card = button.closest('.card');
+    const header = card.querySelector('.card-header');
+    const description = card.querySelector('.card-description');
+    const pictureSection = card.querySelector('.picture-section');
+    const expandIcon = button.querySelector('.expand-icon');
+    
+    if (description.classList.contains('show')) {
+        // Hide description, show picture fully
+        description.classList.remove('show');
+        header.classList.remove('expanded');
+        pictureSection.classList.remove('hidden');
+        expandIcon.classList.remove('rotated');
+    } else {
+        // Show description, fade picture
+        description.classList.add('show');
+        header.classList.add('expanded');
+        pictureSection.classList.add('hidden');
+        expandIcon.classList.add('rotated');
+    }
+}
+</script>
 {% endblock %}

@@ -1,0 +1,27 @@
+Bootstrap:
+  description: "Bootstrap framework for responsive design"
+  url: "https://getbootstrap.com/"
+  picture: "https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo.svg"
+
+Proxmox:
+  description: "Virutalization platform"
+  url: "https://proxmox.com/"
+
+Frigate:
+  url: "https://frigate.video/"
+
+Nextcloud:
+  url: "https://nextcloud.com/"
+  picture: "https://nextcloud.example.com/core/img/logo/logo.svg"
+
+Home Assistant:
+  url: "https://www.home-assistant.io/"
+  picture: "https://www.home-assistant.io/images/logo.png"
+
+VS Code Server:
+  url: "https://github.com/coder/code-server"
+  picture: "https://code.visualstudio.com/assets/favicon.ico" 
+
+Kubernetes:
+  url: "https://kubernetes.io/"
+  picture: "https://kubernetes.io/images/favicon.png"
