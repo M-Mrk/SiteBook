@@ -1,4 +1,5 @@
 from app.yamlServices import validateYaml
+from app import errorHandling
 
 print("Starting SiteBook...")
 
@@ -6,12 +7,10 @@ print("Starting SiteBook...")
 error = validateYaml()
 
 # Start flask to either run normally or show the validation error(s)
-from app.app import app, setError
+from app.app import app
 
-if error:
-    print(f"Error in YAML file: {error}")
-    # Set the error to the flask app so it can show the error
-    setError(error)
+if errorHandling.errorExists():
+    print(f"Error in YAML file: {errorHandling.getErrors()}")
 else:
     print("YAML file loaded successfully.")
     print("Starting Flask app...  Output now from flask server:")

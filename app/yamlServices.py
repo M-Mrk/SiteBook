@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Extra, ValidationError, RootModel
 from typing import Dict, Optional
+from . import errorHandling
 import yaml
 import os
 
@@ -25,8 +26,11 @@ def validateEntries():
         try:
             data = yaml.safe_load(file)
             Entries.model_validate(data)
+            errorHandling.removeErrors() 
         except (yaml.YAMLError, ValidationError) as exc:
-            return str(exc)
+            output = f"Error in entries.yaml: {exc}"
+            errorHandling.setError(output)
+            return output
 
 def validateYaml():
     output = None
@@ -36,6 +40,10 @@ def validateYaml():
     return output
 
 def loadEntriesYaml():
+    error = validateEntries()
+    if error:
+        return
+    
     baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     entriesPath = os.path.join(baseDir, "entries.yaml")
     with open(entriesPath, "r") as file:
@@ -44,4 +52,5 @@ def loadEntriesYaml():
             return entries
         except yaml.YAMLError as exc:
             print(f"Error loading YAML file: {exc}")
+            errorHandling.setError(f"Error loading YAML file: {exc}")
             return None

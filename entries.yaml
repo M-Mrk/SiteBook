@@ -7,17 +7,19 @@ Bootstrap:
 Proxmox:
   description: "Virutalization platform"
   url: "https://proxmox.com/"
+  picture: "https://www.proxmox.com/images/proxmox/Proxmox_logo_standard_hex_400px.png"
 
 Frigate:
   url: "https://frigate.video/"
+  picture: "https://docs.frigate.video/img/frigate.png"
 
 Nextcloud:
   url: "https://nextcloud.com/"
-  picture: "https://nextcloud.example.com/core/img/logo/logo.svg"
+  picture: "https://nextcloud.com/media/nextcloud-logo-blue.svg"
 
 Home Assistant:
   url: "https://www.home-assistant.io/"
-  picture: "https://www.home-assistant.io/images/logo.png"
+  picture: "https://brands.home-assistant.io/homeassistant/logo.png"
 
 VS Code Server:
   url: "https://github.com/coder/code-server"
@@ -25,4 +27,4 @@ VS Code Server:
 
 Kubernetes:
   url: "https://kubernetes.io/"
-  picture: "https://kubernetes.io/images/favicon.png"
+  picture: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Nextcloud_Logo.svg/1200px-Nextcloud_Logo.svg.png"
