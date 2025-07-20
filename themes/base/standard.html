@@ -14,6 +14,50 @@
     {% endblock %}
 </head>
 <body>
+
+    <!-- Toast container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+                        <div class="toast-header">
+                            {% if category == 'warning' %}
+                                <i class="material-symbols-outlined text-warning me-2">warning</i>
+                                <strong class="me-auto text-warning">Warning</strong>
+                            {% elif category == 'error' %}
+                                <i class="material-symbols-outlined text-danger me-2">error</i>
+                                <strong class="me-auto text-danger">Error</strong>
+                            {% elif category == 'success' %}
+                                <i class="material-symbols-outlined text-success me-2">check_circle</i>
+                                <strong class="me-auto text-success">Success</strong>
+                            {% else %}
+                                <i class="material-symbols-outlined text-info me-2">info</i>
+                                <strong class="me-auto text-info">Info</strong>
+                            {% endif %}
+                            <small class="text-muted">just now</small>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Script to show toasts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            var toastList = toastElList.map(function(toastEl) {
+                return new bootstrap.Toast(toastEl);
+            });
+            toastList.forEach(toast => toast.show());
+        });
+    </script>
+
     {% block content %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
     <div class="container-fluid">
