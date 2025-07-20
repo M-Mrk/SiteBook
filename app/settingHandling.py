@@ -1,4 +1,4 @@
-from .yamlServices import loadSettingsYaml
+from .yamlServices import loadSettingsYaml, writeToYaml
 from .validationModels import SettingsModel
 
 
@@ -35,4 +35,17 @@ def checkIfExistsOrIsEmpty(settingsName):
         return False
     return True
 
-#TODO: Add writing settings/yaml functionality. Especially for setting secret_key in app.py
+def setAndWriteSetting(settingsName, value):
+    """
+    Sets a setting and writes it to settings.yaml.
+    
+    args:
+        settingsName (str): The name of the setting to set.
+        value: The value to set the setting to.
+
+    returns:
+        bool: True if the setting was successfully set and written, False otherwise.
+    """
+    settings = getSettings()
+    setattr(settings, settingsName, value)
+    writeToYaml("settings.yaml", settings.model_dump())

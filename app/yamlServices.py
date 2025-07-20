@@ -43,6 +43,19 @@ def createExampleSettingsYaml():
         return True
     return False
 
+def getYamlFilePath(fileName: str) -> str:
+    """
+    Returns the absolute path of a YAML file given its name.
+
+    args:
+        fileName (str): The name of the YAML file.
+
+    returns:
+        str: The absolute path to the YAML file.
+    """
+    baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(baseDir, fileName)
+
 # Validating entries.yaml
 def validateEntries():
     """
@@ -55,8 +68,7 @@ def validateEntries():
     returns:
         str: Error message if validation fails, None if successful
     """
-    baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    entriesPath = os.path.join(baseDir, "entries.yaml")
+    entriesPath = getYamlFilePath("entries.yaml")
     if not os.path.exists(entriesPath):
         createExampleEntriesYaml()
         return f"entries.yaml not found at {entriesPath}. Created a new example file."
@@ -76,8 +88,7 @@ def validateSettings():
     Validates the settings.yaml file, checking if it exists and if it is valid.
     If it does not exist, it creates a new example file.
     """
-    baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    settingsPath = os.path.join(baseDir, "settings.yaml")
+    settingsPath = getYamlFilePath("settings.yaml")
     if not os.path.exists(settingsPath):
         createExampleSettingsYaml()
         return f"settings.yaml not found at {settingsPath}. Created a new example file."
@@ -140,3 +151,38 @@ def loadSettingsYaml():
             print(f"Error loading YAML file: {exc}")
             errorHandling.setError(message=f"Error loading YAML file: {exc}", origin="settings.yaml")
             return None
+        
+def writeToYaml(fileName: str, data: Dict, filterNoneOut=True):
+    """
+    Writes data to a YAML file.
+
+    args:
+        filePath (str): The path to the YAML file.
+        data (Dict): The data to write to the YAML file.
+        filterNoneOut (bool): Whether it should filter out keys which are None, defaults to True
+
+    returns:
+        bool: True if there was an error writing to the file, False if successful.
+    """
+    filePath = getYamlFilePath(fileName)
+    if not os.path.exists(filePath):
+        print(f"File {filePath} does not exist, aborting write.")
+        return True
+    
+    #Read File to restore in case of error
+    with open(filePath, "r") as file:
+        currentData = file.read()
+
+    if filterNoneOut:
+        data = {key: value for key, value in data.items() if value is not None}
+
+    with open(filePath, "w+") as file:
+        yaml.dump(data, file, default_flow_style=False, allow_unicode=True)
+        if validateYaml():
+            print(f"Error writing to {filePath}. Validation failed.")
+            
+            file.seek(0)           # Move to the start of the file
+            file.truncate()        # Clear the file contents
+            file.write(currentData)  # Restore previous content if validation fails
+            return True
+        return False
