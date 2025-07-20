@@ -11,18 +11,24 @@ def getTheme():
     if not checkIfExistsOrIsEmpty('theme'):
         return "standard"
     else:
+        baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        themesDir = os.path.join(baseDir, "themes")
+        
         paths = [
-            os.path.join(app.template_folder, f"base/{settings.theme}.html"),
-            os.path.join(app.template_folder, f"main/{settings.theme}.html"),
-            os.path.join(app.template_folder, f"error/{settings.theme}.html"),
-            os.path.join(app.template_folder, f"settings/{settings.theme}.html")
+            os.path.join(themesDir, f"base/{settings.theme}.html"),
+            os.path.join(themesDir, f"main/{settings.theme}.html"), 
+            os.path.join(themesDir, f"error/{settings.theme}.html"),
+            os.path.join(themesDir, f"settings/{settings.theme}.html")
         ]
         fileNotFound = False
+        falsePaths = []
         for path in paths:
             if not os.path.exists(path):
-                fileNotFound = path
+                fileNotFound = True
+                falsePaths.append(path)
         if fileNotFound:
-            flash(f"At least one Theme file of Theme: '{settings.theme}' not found at: {fileNotFound}. Using default theme instead.", "warning")
+            printPaths = "\n".join(falsePaths)
+            flash(f"{len(falsePaths)} Theme file(s) of Theme: '{settings.theme}' not found at: {printPaths}. Using default theme instead.", "warning")
             return "standard"
 
         return settings.theme
@@ -43,5 +49,11 @@ def errorPage(errors=None):
         return redirect("/")
     return render_template(f"error/{getTheme()}.html", errors=errors, settings=getSettings())
 
+# @app.route("/power", methods=["POST"])
+# def power():
+
+
 # @app.route("/restart") #TODO find way to restart the app
 # def restart():
+
+#TODO: Rework how errors get returned, currently not uniform
