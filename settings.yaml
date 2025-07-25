@@ -1,1 +1,3 @@
-secretKey: WQxrrs9_nDbW52XvutGQ8GV_ejGX4Qt9oZR8tG8AZBg
+server:
+  port: 5000
+  secretKey: SfZKx9pYEnifrvTxXl23MEbPEWCVbiI9D-2zgfR5R7E

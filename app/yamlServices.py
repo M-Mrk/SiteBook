@@ -5,44 +5,6 @@ from . import errorHandling
 import yaml
 import os
 
-def createExampleEntriesYaml():
-    """
-    Creates an example entries.yaml file if it does not exist.
-    
-    args:
-        None
-
-    returns:
-        True if the file was created, False if it already exists.
-    """
-    baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    entriesPath = os.path.join(baseDir, "entries.yaml")
-    if not os.path.exists(entriesPath):
-        with open(entriesPath, "w") as file:
-            file.write("# Example entries.yaml\n# Add your entries here in the format:\n# name:\n#   feature1:\n#   feature2:\n#   ...\n# Look at the documentation for more details.")
-        errorHandling.setError(message=f"entries.yaml not found at {entriesPath}. Created a new example file. Fill it with your entries and/or restart.", origin="entries.yaml")
-        return True
-    return False
-
-def createExampleSettingsYaml():
-    """
-    Creates an example settings.yaml file if it does not exist.
-    
-    args:
-        None
-
-    returns:
-        True if the file was created, False if it already exists.
-    """
-    baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    settingsPath = os.path.join(baseDir, "settings.yaml")
-    if not os.path.exists(settingsPath):
-        with open(settingsPath, "w") as file:
-            file.write("# Example settings.yaml\n# Add your settings here in the format:\n# feature1:\n#   feature2:\n# Look at the documentation for more details.")
-        errorHandling.setError(message=f"settings.yaml not found at {settingsPath}. Created a new example file. Fill it with your settings and/or restart.", origin="settings.yaml")
-        return True
-    return False
-
 def getYamlFilePath(fileName: str) -> str:
     """
     Returns the absolute path of a YAML file given its name.
@@ -56,68 +18,208 @@ def getYamlFilePath(fileName: str) -> str:
     baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(baseDir, fileName)
 
-# Validating entries.yaml
+def createExampleEntriesYaml():
+    """
+    Creates an example entries.yaml file if it does not exist.
+    
+    Returns:
+        bool: True if the file was created, False if it already exists.
+    
+    Raises:
+        PermissionError: If unable to write to the directory
+        OSError: If there's a critical file system error
+    """
+    try:
+        entriesPath = getYamlFilePath("entries.yaml")
+        
+        if os.path.exists(entriesPath):
+            return False
+        
+        with open(entriesPath, "w", encoding="utf-8") as file:
+            example_content = """# Example entries.yaml
+# Add your entries here in the format:
+# entry_name:
+#   url: "https://example.com"
+#   description: "A brief description"
+#
+# Example:
+# homeassistant:
+#   url: "http://192.168.2.15:8123"
+#   description: "My Home Assistant instance"
+"""
+            file.write(example_content)
+        
+        errorHandling.setError(
+            message=f"entries.yaml not found. Created example file at {entriesPath}. Please add your entries and restart the application.",
+            origin="entries.yaml"
+        )
+        return True
+        
+    except PermissionError as e:
+        raise PermissionError(f"Unable to create entries.yaml, permission denied: {e}")
+    
+    except OSError as e:
+        raise OSError(f"File system error while creating entries.yaml: {e}")
+    
+    except Exception as e:
+        errorHandling.setError(
+            message=f"Unexpected error creating entries.yaml: {e}",
+            origin="entries.yaml"
+        )
+        raise RuntimeError(f"Unexpected error creating example entries file: {e}")
+
+def createExampleSettingsYaml():
+    """
+    Creates an example settings.yaml file if it does not exist.
+    
+    Returns:
+        bool: True if the file was created, False if it already exists.
+    
+    Raises:
+        PermissionError: If unable to write to the directory
+        OSError: If there's a critical file system error
+    """
+    try:
+        settingsPath = getYamlFilePath("settings.yaml")
+        
+        if os.path.exists(settingsPath):
+            return False
+        
+        with open(settingsPath, "w", encoding="utf-8") as file:
+            example_content = """# Example settings.yaml
+# Configure your SiteBook application settings here
+#
+"""
+            file.write(example_content)
+        
+        errorHandling.setError(
+            message=f"settings.yaml not found. Created example file at {settingsPath}. Please configure your settings and restart the application.",
+            origin="settings.yaml"
+        )
+        return True
+        
+    except PermissionError as e:
+        raise PermissionError(f"Unable to create settings.yaml - permission denied: {e}")
+    
+    except OSError as e:
+        raise OSError(f"File system error while creating settings.yaml: {e}")
+    
+    except Exception as e:
+        errorHandling.setError(
+            message=f"Unexpected error creating settings.yaml: {e}",
+            origin="settings.yaml"
+        )
+        raise RuntimeError(f"Unexpected error creating example settings file: {e}")
+
 def validateEntries():
     """
     Validates the entries.yaml file, checking if it exists and if it is valid.
     If it does not exist, it creates a new example file.
 
-    args:
-        None
-
-    returns:
-        str: Error message if validation fails, None if successful
+    Returns:
+        str: Error message if validation fails, None if successful.
     """
-    entriesPath = getYamlFilePath("entries.yaml")
-    if not os.path.exists(entriesPath):
-        createExampleEntriesYaml()
-        return f"entries.yaml not found at {entriesPath}. Created a new example file."
-    with open(entriesPath, "r") as file:
-        try:
-            errorHandling.removeErrorByOrigin(origin="entries.yaml")  # Remove any previous errors of entries.yaml
-            data = yaml.safe_load(file)
-            EntryModel.model_validate(data)
-        except (yaml.YAMLError, ValidationError) as exc:
-            output = f"Error in entries.yaml: {exc}"
-            errorHandling.setError(message=f"{exc}", origin="entries.yaml")
-            return output
+    try:
+        entriesPath = getYamlFilePath("entries.yaml")
 
-# Validating settings.yaml
+        if not os.path.exists(entriesPath):
+            createExampleEntriesYaml()
+            return f"entries.yaml not found at {entriesPath}. Created a new example file."
+
+        with open(entriesPath, "r", encoding="utf-8") as file:
+            errorHandling.removeErrorByOrigin(origin="entries.yaml")
+
+            data = yaml.safe_load(file)
+
+            if data is None:
+                errorMsg = "entries.yaml is empty or contains only comments."
+                errorHandling.setError(message=errorMsg, origin="entries.yaml")
+                return errorMsg
+
+            EntryModel.model_validate(data)
+
+            return None
+
+    except yaml.YAMLError as exc:
+        errorMsg = f"Invalid YAML syntax: {exc}"
+        errorHandling.setError(message=errorMsg, origin="entries.yaml")
+        return errorMsg
+
+    except ValidationError as exc:
+        errorMsg = f"Invalid entry structure: {exc}"
+        errorHandling.setError(message=errorMsg, origin="entries.yaml")
+        return errorMsg
+
+    except PermissionError as exc:
+        raise PermissionError(f"Cannot read entries.yaml - permission denied: {exc}")
+
+    except Exception as exc:
+        errorMsg = f"Unexpected validation error: {exc}"
+        errorHandling.setError(message=errorMsg, origin="entries.yaml")
+        return errorMsg
+
 def validateSettings():
     """
     Validates the settings.yaml file, checking if it exists and if it is valid.
     If it does not exist, it creates a new example file.
+
+    Returns:
+        str: Error message if validation fails, None if successful.
     """
-    settingsPath = getYamlFilePath("settings.yaml")
-    if not os.path.exists(settingsPath):
-        createExampleSettingsYaml()
-        return f"settings.yaml not found at {settingsPath}. Created a new example file."
-    with open(settingsPath, "r") as file:
-        try:
-            errorHandling.removeErrorByOrigin(origin="settings.yaml")  # Remove any previous errors of settings.yaml
+    try:
+        settingsPath = getYamlFilePath("settings.yaml")
+
+        if not os.path.exists(settingsPath):
+            createExampleSettingsYaml()
+            return f"settings.yaml not found at {settingsPath}. Created a new example file."
+
+        with open(settingsPath, "r", encoding="utf-8") as file:
+            errorHandling.removeErrorByOrigin(origin="settings.yaml")
+
             data = yaml.safe_load(file)
+
+            if data is None:
+                data = {}
+
             SettingsModel.model_validate(data)
-        except (yaml.YAMLError, ValidationError) as exc:
-            output = f"Error in settings.yaml: {exc}"
-            errorHandling.setError(message=f"{exc}", origin="settings.yaml")
-            return output
+
+            return None
+
+    except yaml.YAMLError as exc:
+        errorMsg = f"Invalid YAML syntax in settings: {exc}"
+        errorHandling.setError(message=errorMsg, origin="settings.yaml")
+        return errorMsg
+
+    except ValidationError as exc:
+        errorMsg = f"Invalid settings configuration: {exc}"
+        errorHandling.setError(message=errorMsg, origin="settings.yaml")
+        return errorMsg
+
+    except PermissionError as exc:
+        raise PermissionError(f"Cannot read settings.yaml, permission denied: {exc}")
+
+    except Exception as exc:
+        errorMsg = f"Unexpected validation error: {exc}"
+        errorHandling.setError(message=errorMsg, origin="settings.yaml")
+        return errorMsg
 
 def validateYaml():
     """
-    Validates all YAML files, by calling each validation function.
-    Remember that the validation functions also call the errorHandling functions to set errors if validation fails.`
-
-    args:
-        None
-
-    returns:
-        str: Error message if validation fails, None if successful
+    Validates all YAML files by calling each validation function.
+    Returns:
+        str: Error message if any validation fails, None if all validations are successful.
     """
     print("Validating YAML files...")
     output = None
+
     entriesError = validateEntries()
     if entriesError:
-        output = f"Error in entries.yaml: {entriesError}"
+        output = entriesError
+
+    settingsError = validateSettings()
+    if settingsError:
+        output = settingsError if output is None else f"{output}\n{settingsError}"
+
     return output
 
 def loadEntriesYaml():
@@ -151,38 +253,100 @@ def loadSettingsYaml():
             print(f"Error loading YAML file: {exc}")
             errorHandling.setError(message=f"Error loading YAML file: {exc}", origin="settings.yaml")
             return None
+
+def filterNoneOut(data: Dict):
+    """
+    Filter out None values even when nested.
+    
+    Args:
+        data: The data structure to filter (dict, list, or other)
         
-def writeToYaml(fileName: str, data: Dict, filterNoneOut=True):
+    Returns:
+        Filtered data structure with None values removed
+    """
+
+    filtered = {}
+    for key, value in data.items():
+        if value is not None:
+            if isinstance(value, dict):
+                filtered_value = filterNoneOut(value)
+                if filtered_value:
+                    filtered[key] = filtered_value
+            elif isinstance(value, list):
+                filtered_list = []
+                for item in value:
+                    if item is not None:
+                        if isinstance(item, dict):
+                            filtered_item = filterNoneOut(item)
+                            if filtered_item:
+                                filtered_list.append(filtered_item)
+                        else:
+                            filtered_list.append(item)
+                if filtered_list:
+                    filtered[key] = filtered_list
+            else:
+                filtered[key] = value
+    return filtered
+
+def writeYamlFile(fileName: str, data: Dict, filterNoneValues: bool = True):
     """
     Writes data to a YAML file.
 
     args:
-        filePath (str): The path to the YAML file.
+        fileName (str): The name of the YAML file.
         data (Dict): The data to write to the YAML file.
-        filterNoneOut (bool): Whether it should filter out keys which are None, defaults to True
+        filterNoneValues (bool): Whether it should filter out keys which are None, defaults to True
 
     returns:
         bool: True if there was an error writing to the file, False if successful.
     """
-    filePath = getYamlFilePath(fileName)
-    if not os.path.exists(filePath):
-        print(f"File {filePath} does not exist, aborting write.")
-        return True
-    
-    #Read File to restore in case of error
-    with open(filePath, "r") as file:
-        currentData = file.read()
+    try:
+        filePath = getYamlFilePath(fileName)
 
-    if filterNoneOut:
-        data = {key: value for key, value in data.items() if value is not None}
-
-    with open(filePath, "w+") as file:
-        yaml.dump(data, file, default_flow_style=False, allow_unicode=True)
-        if validateYaml():
-            print(f"Error writing to {filePath}. Validation failed.")
-            
-            file.seek(0)           # Move to the start of the file
-            file.truncate()        # Clear the file contents
-            file.write(currentData)  # Restore previous content if validation fails
+        if not os.path.exists(filePath):
+            errorMsg = f"File {filePath} does not exist, aborting write."
+            print(errorMsg)
+            errorHandling.setError(message=errorMsg, origin=fileName)
             return True
+
+        # Read file to restore in case of error
+        with open(filePath, "r", encoding="utf-8") as file:
+            currentData = file.read()
+
+        if filterNoneValues:
+            data = filterNoneOut(data)
+
+        with open(filePath, "w", encoding="utf-8") as file:
+            yaml.dump(data, file, default_flow_style=False, allow_unicode=True)
+
+        # Validate the written file
+        validationError = validateYaml()
+        if validationError:
+            errorMsg = f"Error writing to {filePath}. Validation failed: {validationError}"
+            print(errorMsg)
+            errorHandling.setError(message=errorMsg, origin=fileName)
+
+            # Restore previous content if validation fails
+            with open(filePath, "w", encoding="utf-8") as file:
+                file.write(currentData)
+            return True
+
         return False
+
+    except yaml.YAMLError as exc:
+        errorMsg = f"YAML error while writing to {fileName}: {exc}"
+        print(errorMsg)
+        errorHandling.setError(message=errorMsg, origin=fileName)
+        return True
+
+    except PermissionError as exc:
+        errorMsg = f"Permission denied while writing to {fileName}: {exc}"
+        print(errorMsg)
+        errorHandling.setError(message=errorMsg, origin=fileName)
+        return True
+
+    except Exception as exc:
+        errorMsg = f"Unexpected error while writing to {fileName}: {exc}"
+        print(errorMsg)
+        errorHandling.setError(message=errorMsg, origin=fileName)
+        return True

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, flash
+from flask import Flask, render_template, redirect, flash, request
 from .yamlServices import loadEntriesYaml, validateEntries
 from . import errorHandling
 from .settingHandling import getSettings, checkIfExistsOrIsEmpty
@@ -40,6 +40,16 @@ def home():
         return redirect("/error")
     return render_template(f"main/{getTheme()}.html", entries=entries, settings=getSettings())
 
+# @app.route("/add", methods=["POST"])
+# def add():
+#     name = request.form.get("name")
+#     url = request.form.get("url")
+#     description = request.form.get("description")
+#     if not name:
+#         flash("No name provided for new entry. Couldn't create new entry", "warning")
+#         return redirect("/")
+    
+
 @app.route("/error")
 def errorPage(errors=None):
     if not errors:
@@ -49,11 +59,7 @@ def errorPage(errors=None):
         return redirect("/")
     return render_template(f"error/{getTheme()}.html", errors=errors, settings=getSettings())
 
-# @app.route("/power", methods=["POST"])
+# @app.route("/power", methods=["POST"]) #TODO find way to restart the app
 # def power():
-
-
-# @app.route("/restart") #TODO find way to restart the app
-# def restart():
 
 #TODO: Rework how errors get returned, currently not uniform
