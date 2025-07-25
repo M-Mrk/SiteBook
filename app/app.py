@@ -8,17 +8,22 @@ app = Flask(__name__, template_folder="../themes")
 
 def getTheme():
     settings = getSettings()
-    if not checkIfExistsOrIsEmpty('theme'):
+    if not checkIfExistsOrIsEmpty('theme.name'):
         return "standard"
     else:
         baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         themesDir = os.path.join(baseDir, "themes")
+
+        themeBaseDir = os.path.join(themesDir, 'base')
+        themeMainDir = os.path.join(themesDir, 'main')
+        themeErrorDir = os.path.join(themesDir, 'error')
+        themeSettingsDir = os.path.join(themesDir, 'settings')
         
         paths = [
-            os.path.join(themesDir, f"base/{settings.theme}.html"),
-            os.path.join(themesDir, f"main/{settings.theme}.html"), 
-            os.path.join(themesDir, f"error/{settings.theme}.html"),
-            os.path.join(themesDir, f"settings/{settings.theme}.html")
+            os.path.join(themeBaseDir, f"{settings.theme.name}.html"),
+            os.path.join(themeMainDir, f"{settings.theme.name}.html"), 
+            os.path.join(themeErrorDir, f"{settings.theme.name}.html"),
+            os.path.join(themeSettingsDir, f"{settings.theme.name}.html")
         ]
         fileNotFound = False
         falsePaths = []
@@ -28,10 +33,10 @@ def getTheme():
                 falsePaths.append(path)
         if fileNotFound:
             printPaths = "\n".join(falsePaths)
-            flash(f"{len(falsePaths)} Theme file(s) of Theme: '{settings.theme}' not found at: {printPaths}. Using default theme instead.", "warning")
+            flash(f"{len(falsePaths)} Theme file(s) of Theme: '{settings.theme.name}' not found at: {printPaths}. Using default theme instead.", "warning")
             return "standard"
 
-        return settings.theme
+        return settings.theme.name
 
 @app.route("/")
 def home():

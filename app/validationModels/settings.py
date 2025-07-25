@@ -10,9 +10,15 @@ class FlaskSettings(BaseModel):
     class Config:
         extra = 'forbid'
 
+class ThemeSettings(BaseModel):
+    name: Optional[str] = None
+
+    class Config:
+        extra = 'allow'
+
 class SettingsModel(BaseModel):
     server: Optional[FlaskSettings] = None
-    theme: Optional[str] = None
+    theme: Optional[ThemeSettings] = None
     searchbar: Optional[bool] = None
     
     class Config:
