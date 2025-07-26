@@ -63,8 +63,31 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="/">SiteBook</a>
         <a class="btn btn-outline-light ms-auto" href="/settings" role="button">
-            <i class="bi bi-gear"></i> Settings
+            Settings
         </a>
+        <div class="dropdown">
+            <button class="btn btn-sm dropdown-toggle" type="button" id="powerDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-power text-white fs-5"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="powerDropdown">
+                <li>
+                    <form method="POST" action="/power" class="d-inline">
+                        <input type="hidden" name="action" value="stop">
+                        <button type="submit" class="dropdown-item">
+                            <i class="bi bi-stop-circle me-2"></i> Stop
+                        </button>
+                    </form>
+                </li>
+                <li>
+                    <form method="POST" action="/power" class="d-inline">
+                        <input type="hidden" name="action" value="restart">
+                        <button type="submit" class="dropdown-item">
+                            <i class="bi bi-arrow-clockwise me-2"></i> Restart
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
     </div>
     </nav>
     <!-- Page content would go here-->

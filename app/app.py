@@ -4,6 +4,8 @@ from . import errorHandling
 from .settingHandling import getSettings, checkIfExistsOrIsEmpty
 import os
 from functools import wraps
+import sys
+from threading import Timer
 
 app = Flask(__name__, template_folder="../themes")
 
@@ -75,7 +77,51 @@ def errorPage():
         return redirect("/")
     return render_template(f"error/{getTheme()}.html", errors=errors, startUpPrevented=errorHandling.errorPreventedStart(), settings=getSettings())
 
-# @app.route("/power", methods=["POST"]) #TODO find way to restart the app
-# def power():
+def stopApp():
+    import time
+    print("Stopping the application...")
+    try:
+        # Method 1: Send SIGINT signal like Ctrl+C
+        import signal
+        os.kill(os.getpid(), signal.SIGINT)
+        time.sleep(1)
+        raise Exception("SIGINT did not stop the application as expected.")
+    except Exception as exc:
+        print(f"Error during SIGINT shutdown: {exc}")
+        try:
+            # Method 2: Force exit if SIGINT fails
+            print("Attempting force exit...")
+            os._exit(0)
+        except Exception as exc:
+            global powerCalled
+            powerCalled = False
+            print(f"Error during force exit: {exc}")
 
-#TODO: Rework how errors get returned, currently not uniform
+def restartApp():
+    print("Restarting the application...")
+    pythonInterpreter = sys.executable
+    os.execl(pythonInterpreter, pythonInterpreter, *sys.argv)
+
+powerCalled = False
+
+@app.route("/power", methods=["POST"])
+def power():
+    global powerCalled
+    if powerCalled:
+        return redirect('/')
+    
+    action = request.form.get("action")
+
+    if action == "stop":
+        powerCalled = True
+        flash("Stopping the application...", category="info")
+        Timer(1, stopApp).start()
+        return redirect("/")
+    elif action == "restart":
+        powerCalled = True
+        flash("Restarting the application...", category="info")
+        Timer(1, restartApp).start()
+        return redirect("/")
+    else:
+        flash("Unknown power action. No action taken.", "warning")
+        return redirect("/")

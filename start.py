@@ -54,9 +54,13 @@ try:
     app.run(debug=settings.server.debug, port=settings.server.port, host=settings.server.host)
 
 except Exception as e:
+    errorHandling.setErrorPreventedStart()
     debugSetting = getattr(settings.server, "debug", True)
     portSetting = getattr(settings.server, "port", 5000)
     hostSetting = getattr(settings.server, "host", '127.0.0.1')
-    print(Fore.RED + f"Error while starting: {e}\nStarting Flask app on port {portSetting} and host {hostSetting} with debug {debugSetting}.")
+    if not app.secret_key:
+        import secrets
+        app.secret_key = secrets.token_urlsafe(32)
+    print(Fore.RED + f"Error while starting: {e}\nStarting Flask app: http://{hostSetting}:{portSetting} with debug {debugSetting}.")
     app.run(debug=debugSetting, port=portSetting, host=hostSetting)
 
