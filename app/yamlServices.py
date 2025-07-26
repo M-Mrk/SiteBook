@@ -267,6 +267,11 @@ def loadEntriesYaml():
     with open(entriesPath, "r") as file:
         try:
             entries = yaml.safe_load(file)
+
+            for name, entry in entries.items(): # Converting Entries with just the name into dict so it does not cause problems
+                if entry is None: # check if entries data is None 
+                    entries[name] = {} # create empty dict
+
             return entries
         except yaml.YAMLError as exc:
             errorHandling.setError(

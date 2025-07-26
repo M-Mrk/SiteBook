@@ -10,4 +10,4 @@ class Entry(BaseModel): # List all allowed fields for an entry
         extra = 'forbid'
 
 class EntryModel(RootModel[Dict[str, Entry]]): # Basically says that any key in the dictionary is a string and the value is an Entry object
-    root: Dict[str, Entry]
+    root: Dict[str, Optional[Entry]]
