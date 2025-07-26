@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, flash, request
-from .yamlServices import loadEntriesYaml
+from .yamlServices import loadEntriesYaml, validateYaml
 from . import errorHandling
 from .settingHandling import getSettings, checkIfExistsOrIsEmpty
 import os
@@ -69,6 +69,8 @@ def home():
 @app.route("/error")
 def errorPage():
     errors = errorHandling.getErrors()
+    if errors:
+        validateYaml()
     if not errors:
         return redirect("/")
     return render_template(f"error/{getTheme()}.html", errors=errors, startUpPrevented=errorHandling.errorPreventedStart(), settings=getSettings())
