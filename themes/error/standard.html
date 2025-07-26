@@ -5,11 +5,21 @@
     <div class="text-center py-5">
         <h1 class="display-4 text-danger">An error occurred...</h1>
         <p class="lead mt-4 text-muted">Something went wrong. Please see the details below:</p>
+        {% if startUpPrevented %}
+        <div class="alert alert-danger mt-4" role="alert" style="max-width: 600px; margin: 0 auto;">
+            <h1 class="fs-5 fw-bold">An error prevented correct startup</h1>
+            <p class="fs-6">One or more of the following errors prevented a correct startup. This page will <strong>not</strong> revalidate these errors, when Sitebook is in this state and any other function will redirect here. Resolve these errors and restart Sitebook.</p>
+            <!-- <form action="/power">
+                <button class="btn btn-danger" type="submit">Restart</button>
+                <input type="hidden" name="action" value="restart">
+            </form> -->
+        </div>
+        {% endif %}
         <div class="alert alert-warning mt-4" role="alert" style="max-width: 600px; margin: 0 auto;">
             {% if errors %}
                 <ul class="mb-0">
                     {% for error in errors %}
-                        <li><strong>{{ error.origin }}: <br /></strong>
+                        <li><strong>{{ error.category }}</strong> in <strong>{{ error.origin }}: <br /></strong>
                         {{ error.message }}</li>
                     {% endfor %}
                 </ul>

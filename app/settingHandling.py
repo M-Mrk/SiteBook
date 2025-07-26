@@ -58,13 +58,13 @@ def setAndWriteSetting(settingsName, value):
         value: The value to set the setting to.
 
     Returns:
-        bool: True if the setting was successfully set and written, False otherwise.
+        none
     """
     allSettingNames = settingsName.split('.')
     settings = getSettings()
     
-    settings_dict = settings.model_dump() if hasattr(settings, 'model_dump') else settings.__dict__
-    parentObj = settings_dict
+    settingsDict = settings.model_dump() if hasattr(settings, 'model_dump') else settings.__dict__
+    parentObj = settingsDict
 
     for key in allSettingNames[:-1]:
         if key not in parentObj or parentObj[key] is None:
@@ -72,5 +72,4 @@ def setAndWriteSetting(settingsName, value):
         parentObj = parentObj[key]
 
     parentObj[allSettingNames[-1]] = value
-
-    return writeYamlFile(fileName="settings.yaml", data=settings_dict, filterNoneValues=True)
+    writeYamlFile(fileName="settings.yaml", data=settingsDict, filterNoneValues=True)

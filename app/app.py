@@ -3,8 +3,18 @@ from .yamlServices import loadEntriesYaml, validateEntries
 from . import errorHandling
 from .settingHandling import getSettings, checkIfExistsOrIsEmpty
 import os
+from functools import wraps
 
 app = Flask(__name__, template_folder="../themes")
+
+def checkIfStartUpPrevented(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if errorHandling.errorPreventedStart():
+            return redirect("/error")
+
+        return f(*args, **kwargs)
+    return decorated_function
 
 def getTheme():
     settings = getSettings()
@@ -39,6 +49,7 @@ def getTheme():
         return settings.theme.name
 
 @app.route("/")
+@checkIfStartUpPrevented
 def home():
     entries = loadEntriesYaml()
     if errorHandling.errorExists():
@@ -56,13 +67,11 @@ def home():
     
 
 @app.route("/error")
-def errorPage(errors=None):
-    if not errors:
-        validateEntries()
-        errors = errorHandling.getErrors()
+def errorPage():
+    errors = errorHandling.getErrors()
     if not errors:
         return redirect("/")
-    return render_template(f"error/{getTheme()}.html", errors=errors, settings=getSettings())
+    return render_template(f"error/{getTheme()}.html", errors=errors, startUpPrevented=errorHandling.errorPreventedStart(), settings=getSettings())
 
 # @app.route("/power", methods=["POST"]) #TODO find way to restart the app
 # def power():
