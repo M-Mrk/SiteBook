@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, flash, request
-from .yamlServices import loadEntriesYaml, validateEntries
+from .yamlServices import loadEntriesYaml
 from . import errorHandling
 from .settingHandling import getSettings, checkIfExistsOrIsEmpty
 import os

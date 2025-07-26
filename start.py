@@ -48,12 +48,15 @@ try:
 
     if not checkIfExistsOrIsEmpty('server.debug'):
         settings.server.debug = False
-        
+
+    print(Fore.YELLOW + f"Using port: {settings.server.port} and host: {settings.server.host}")
+    print("Output now from flask app:")
+    app.run(debug=settings.server.debug, port=settings.server.port, host=settings.server.host)
+
 except Exception as e:
-    print(Fore.RED + f"Error while initializing settings: {e}\nStarting Flask app on port 5000 and host 127.0.0.1 with debug true.")
-    app.run(debug=True, port=5000, host='127.0.0.1')
+    debugSetting = getattr(settings.server, "debug", True)
+    portSetting = getattr(settings.server, "port", 5000)
+    hostSetting = getattr(settings.server, "host", '127.0.0.1')
+    print(Fore.RED + f"Error while starting: {e}\nStarting Flask app on port {portSetting} and host {hostSetting} with debug {debugSetting}.")
+    app.run(debug=debugSetting, port=portSetting, host=hostSetting)
 
-print("Output now from flask app:")
-
-print(Fore.YELLOW + f"Using port: {settings.server.port} and host: {settings.server.host}")
-app.run(debug=settings.server.debug, port=settings.server.port, host=settings.server.host)

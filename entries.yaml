@@ -4,9 +4,6 @@ Bootstrap:
   url: "https://getbootstrap.com/"
   picture: "https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo.svg"
 
-Nginx:
-  description: 3
-
 Proxmox:
   description: "Virutalization platform"
   url: "https://proxmox.com/"

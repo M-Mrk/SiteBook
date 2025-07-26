@@ -12,7 +12,7 @@ class Error:
         self.message = message
 
 errors = []
-errorPreventedStart = False
+errorPreventedStartState = False
 
 recoverableCategories = {'VALIDATION', 'CONFIG', 'SERVICES'} # These Categories of errors will be cleared on load
 criticalCategories = {'SERVER', 'FILESYSTEM', 'NETWORK', 'UNKNOWN'} # These Categories will require manual intervention
@@ -173,8 +173,8 @@ def setErrorPreventedStart():
     returns:
         None
     """
-    global errorPreventedStart
-    errorPreventedStart = True
+    global errorPreventedStartState
+    errorPreventedStartState = True
 
 def errorPreventedStart():
     """
@@ -186,4 +186,4 @@ def errorPreventedStart():
     returns:
         bool: True if an error prevented the correct startup, False otherwise.
     """
-    return errorPreventedStart
+    return errorPreventedStartState
