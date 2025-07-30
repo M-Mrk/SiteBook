@@ -1,7 +1,8 @@
 from flask import Flask, render_template, redirect, flash, request
-from .yamlServices import loadEntriesYaml, validateYaml
+from .yamlServices import loadEntriesYaml, validateYaml, appendEntry
 from . import errorHandling
 from .settingHandling import getSettings, checkIfExistsOrIsEmpty
+from .services import getEntryOptions
 import os
 from functools import wraps
 import sys
@@ -58,16 +59,26 @@ def home():
         return redirect("/error")
     return render_template(f"main/{getTheme()}.html", entries=entries, settings=getSettings())
 
-# @app.route("/add", methods=["POST"])
-# def add():
-#     name = request.form.get("name")
-#     url = request.form.get("url")
-#     description = request.form.get("description")
-#     if not name:
-#         flash("No name provided for new entry. Couldn't create new entry", "warning")
-#         return redirect("/")
-    
+@app.route("/add", methods=["POST"])
+def add():
+    print(request.form)
+    dataDict = {}
+    name = None
+    for key in request.form:
+        if not name and key == "name":
+            name = request.form[key]
+        else:
+            dataDict[key] = request.form[key]
 
+    if not name or name.strip() == "":
+        flash("No name provided for new entry. Couldn't create new entry", "warning")
+        return redirect("/")
+    print("appending")
+    appendEntry(entryName=name, entryData=dataDict)
+    if errorHandling.errorExists:
+        return redirect("/error/f")
+    return redirect("/")
+    
 @app.route("/error")
 def errorPage():
     errors = errorHandling.getErrors()
@@ -76,6 +87,13 @@ def errorPage():
     if not errors:
         return redirect("/")
     return render_template(f"error/{getTheme()}.html", errors=errors, startUpPrevented=errorHandling.errorPreventedStart(), settings=getSettings())
+
+@app.route("/error/f") # Optional error route which doesnt re validate before showing errors
+def fErrorPage():
+    errors = errorHandling.getErrors()
+    if not errors:
+        return redirect("/")
+    return render_template(f"error/{getTheme()}.html", errors=errors, startUpPrevented=errorHandling.errorPreventedStart(), settings=getSettings)
 
 def stopApp():
     import time
@@ -125,3 +143,11 @@ def power():
     else:
         flash("Unknown power action. No action taken.", "warning")
         return redirect("/")
+
+@app.context_processor
+def contextProcessorFunction():
+    return dict(getEntryOptions=getEntryOptions) # Make getEntryOptions available in templates
+
+@app.errorhandler(404)
+def unknownPage(*args):
+    return redirect("/")

@@ -11,6 +11,23 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <!-- Custom styles or scripts would go here -->
+    <style>
+        .entry-option-item {
+            border-bottom: 1px solid #eee;
+            padding: 8px 12px !important;
+        }
+        .entry-option-item:last-child {
+            border-bottom: none;
+        }
+        .entry-option-item:hover {
+            background-color: #f8f9fa;
+        }
+        .option-description {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+    </style>
     {% endblock %}
 </head>
 <body>
@@ -62,34 +79,209 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">SiteBook</a>
-        <a class="btn btn-outline-light ms-auto" href="/settings" role="button">
-            Settings
-        </a>
-        <div class="dropdown">
-            <button class="btn btn-sm dropdown-toggle" type="button" id="powerDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-power text-white fs-5"></i>
+
+        <div class="d-flex ms-auto">
+            <!-- Add Entry Button -->
+            <button class="btn btn-outline-light me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#addEntryOffcanvas" aria-controls="addEntryOffcanvas">
+                <i class="bi bi-plus-lg"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="powerDropdown">
-                <li>
-                    <form method="POST" action="/power" class="d-inline">
-                        <input type="hidden" name="action" value="stop">
-                        <button type="submit" class="dropdown-item">
-                            <i class="bi bi-stop-circle me-2"></i> Stop
-                        </button>
-                    </form>
-                </li>
-                <li>
-                    <form method="POST" action="/power" class="d-inline">
-                        <input type="hidden" name="action" value="restart">
-                        <button type="submit" class="dropdown-item">
-                            <i class="bi bi-arrow-clockwise me-2"></i> Restart
-                        </button>
-                    </form>
-                </li>
-            </ul>
+
+            <!-- Power Dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-sm dropdown-toggle" type="button" id="powerDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-power text-white fs-5"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="powerDropdown">
+                    <li>
+                        <form method="POST" action="/power" class="d-inline">
+                            <input type="hidden" name="action" value="stop">
+                            <button type="submit" class="dropdown-item">
+                                <i class="bi bi-stop-circle me-2"></i> Stop
+                            </button>
+                        </form>
+                    </li>
+                    <li>
+                        <form method="POST" action="/power" class="d-inline">
+                            <input type="hidden" name="action" value="restart">
+                            <button type="submit" class="dropdown-item">
+                                <i class="bi bi-arrow-clockwise me-2"></i> Restart
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
     </nav>
+
+    <!-- Add Entry Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="addEntryOffcanvas" aria-labelledby="addEntryOffcanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="addEntryOffcanvasLabel">
+                <i class="bi bi-plus-circle me-2"></i>Add New Entry
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form method="POST" action="/add">
+                <div class="mb-3">
+                    <label for="entryName" class="form-label">Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="entryName" name="name" required placeholder="Enter entry name">
+                    <div class="form-text">The display name for your entry</div>
+                </div>
+
+                <!-- Dynamic detail fields container -->
+                <div id="detailFields"></div>
+
+                <!-- Add more detail button -->
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="addDetailBtn">
+                        <i class="bi bi-plus-lg me-2"></i>Add More Detail
+                    </button>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-2"></i>Add Entry
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let detailCounter = 0;
+            // Get dynamic attribute options from the server
+            const entryOptions = {{ getEntryOptions() | tojson }};
+            const attributeOptions = entryOptions.map(option => option.name);
+
+            document.getElementById('addDetailBtn').addEventListener('click', function() {
+                detailCounter++;
+                const detailContainer = document.getElementById('detailFields');
+                
+                const detailRow = document.createElement('div');
+                detailRow.className = 'mb-3 detail-row';
+                detailRow.innerHTML = `
+                    <div class="row g-2">
+                        <div class="col-11">
+                            <div class="position-relative">
+                                <input type="text" class="form-control" name="temp_${detailCounter}" 
+                                       placeholder="Type attribute name..." required id="typeInput_${detailCounter}"
+                                       autocomplete="off">
+                                <ul class="dropdown-menu position-absolute" id="dropdown_${detailCounter}" 
+                                    style="display: none; top: 100%; left: -10px; z-index: 1000; width: 380px;">
+                                    ${entryOptions.map(option => 
+                                        `<li><a class="dropdown-item entry-option-item d-block" href="#" data-value="${option.name}" 
+                                                data-description="${option.description}" data-type="${option.inputType}">
+                                            <div class="d-flex justify-content-between align-items-start w-100">
+                                                <div class="flex-grow-1 me-2">
+                                                    <div class="fw-semibold">${option.name.charAt(0).toUpperCase() + option.name.slice(1)}</div>
+                                                    <div class="option-description">${option.description}</div>
+                                                </div>
+                                                <span class="badge bg-primary flex-shrink-0">${option.inputType}</span>
+                                            </div>
+                                        </a></li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-1">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-detail-btn">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-text" id="description_${detailCounter}" style="display: none;"></div>
+                        </div>
+                    </div>
+                `;
+                
+                detailContainer.appendChild(detailRow);
+
+                const typeInput = detailRow.querySelector(`#typeInput_${detailCounter}`);
+                const dropdown = detailRow.querySelector(`#dropdown_${detailCounter}`);
+                const dropdownItems = detailRow.querySelectorAll('.dropdown-item');
+                const descriptionDiv = detailRow.querySelector(`#description_${detailCounter}`);
+
+                // Show dropdown on focus and filter options
+                typeInput.addEventListener('focus', function() {
+                    filterAndShowDropdown();
+                });
+
+                // Filter options as user types
+                typeInput.addEventListener('input', function() {
+                    filterAndShowDropdown();
+                    // Hide description when typing
+                    descriptionDiv.style.display = 'none';
+                });
+
+                // Hide dropdown when textbox loses focus
+                typeInput.addEventListener('blur', function() {
+                    setTimeout(() => {
+                        dropdown.style.display = 'none';
+                    }, 150);
+                });
+
+                // Filter and show dropdown function
+                function filterAndShowDropdown() {
+                    const filter = typeInput.value.toLowerCase();
+                    let hasVisibleItems = false;
+
+                    dropdownItems.forEach(item => {
+                        const value = item.getAttribute('data-value');
+                        if (filter === '' || value.startsWith(filter)) {
+                            item.parentElement.style.display = '';
+                            hasVisibleItems = true;
+                        } else {
+                            item.parentElement.style.display = 'none';
+                        }
+                    });
+
+                    dropdown.style.display = hasVisibleItems ? 'block' : 'none';
+                }
+
+                // Handle dropdown item selection
+                dropdownItems.forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const value = this.getAttribute('data-value');
+                        const description = this.getAttribute('data-description');
+                        const inputType = this.getAttribute('data-type');
+                        
+                        // Change the input to use the selected option name and convert to value input
+                        typeInput.name = value;
+                        typeInput.placeholder = `Enter ${value}`;
+                        typeInput.value = '';
+                        typeInput.id = `${value}_${detailCounter}`;
+                        dropdown.style.display = 'none';
+                        
+                        // Show description with type badge
+                        descriptionDiv.innerHTML = `<i class="bi bi-info-circle me-1"></i>${description} <span class="badge bg-secondary">${inputType}</span>`;
+                        descriptionDiv.style.display = 'block';
+                        
+                        // Remove dropdown functionality since option is now selected
+                        typeInput.removeEventListener('focus', filterAndShowDropdown);
+                        typeInput.removeEventListener('input', filterAndShowDropdown);
+                        dropdown.remove();
+                        
+                        typeInput.focus();
+                    });
+                });
+
+                // Add event listener to remove button
+                detailRow.querySelector('.remove-detail-btn').addEventListener('click', function() {
+                    detailRow.remove();
+                });
+            });
+        });
+    </script>
+
     <!-- Page content would go here-->
     {% endblock %}
 </body>

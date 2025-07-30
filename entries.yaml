@@ -28,3 +28,13 @@ VS Code Server:
 Kubernetes:
   url: "https://kubernetes.io/"
   picture: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Nextcloud_Logo.svg/1200px-Nextcloud_Logo.svg.png"
+  
+Test: {}
+
+test:
+  url: http://example.com
+
+Another test:
+  description: This is the desc
+  picture: https://google.com/favicon
+  url: http://google.de

@@ -356,6 +356,58 @@ def filterNoneOut(data: Dict):
                 filtered[key] = value
     return filtered
 
+def restoreYaml(fileName: str, data = None, truncatePosition = None):
+    """
+    Method to restore Yaml file contents. Automatically handles further exceptions.
+
+    args:
+        filename: the name of the file to restore (e.g. "settings.yaml")
+        Either:
+        - data: the data to write to the file. Truncates the file and then writes the data.
+        - truncatePosition: the position to trucate the file. (NO DATA BEING WRITEN)
+
+        If both are set an exception is raised
+
+    returns:
+        none or raises RuntimeError if restoration fails
+
+    """
+    print("Restoring ...")
+    filePath = getYamlFilePath(fileName)
+    try:
+        if data is None and truncatePosition is None:
+            raise ValueError("Provided data for restoration is None and truncatePosition is also None")
+        
+        if data is not None and truncatePosition is not None:
+            raise ValueError("Both data and truncatePosition are set, only set one of them. If you have data to write, set only data.")
+        
+        if not filePath:
+            raise ValueError(f"The filename: {fileName} did not return a valid path")
+
+        if truncatePosition is None:
+            fileMode = "w"
+        else:
+            fileMode = "r+"
+
+        with open(filePath, fileMode, encoding="utf-8") as file:
+            if truncatePosition is not None:
+                file.seek(truncatePosition)
+                file.truncate()
+            else:
+                file.write(data)
+
+    except Exception as exc:
+        print(Fore.RED + f"""
+Critical error was raised. What happend:
+\t1. Write to {fileName} was called
+\t2. An error was raised while writing, which let to a restoration of the original content
+\t3. Then this critical error occured while writing the original content: {exc}
+
+Current Errors:
+\t{errorHandling.getErrorsPrintable()}
+""")
+        raise RuntimeError(f"Failed to restore {fileName}, stopping application.")
+
 def writeYamlFile(fileName: str, data: Dict, filterNoneValues: bool = True):
     """
     Writes data to a YAML file.
@@ -368,6 +420,7 @@ def writeYamlFile(fileName: str, data: Dict, filterNoneValues: bool = True):
     returns:
         none
     """
+    currentData = None
     try:
         filePath = getYamlFilePath(fileName)
 
@@ -393,21 +446,8 @@ def writeYamlFile(fileName: str, data: Dict, filterNoneValues: bool = True):
         # Validate the written file
         validateYaml()
         if errorHandling.errorExists(): # Check if an error was raised.
-            # Restore previous content if validation fails
-            try:
-                with open(filePath, "w", encoding="utf-8") as file:
-                    file.write(currentData)
-            except Exception as exc:
-                print(Fore.RED + f""" 
-Critical error was raised. What happend:
-\t1. Write to {fileName} was called
-\t2. An error was raised while writing, which let to a restoration of the original content
-\t3. Then this critical error occured while writing the original content: {exc}
-
-Current Errors:
-\t{errorHandling.getErrorsPrintable()}
-""")
-        return
+            restoreYaml(fileName="settings.yaml", data=currentData) # Restore the original content
+            return
 
     except yaml.YAMLError as exc:
         errorHandling.setError(
@@ -415,7 +455,6 @@ Current Errors:
             origin=fileName,
             category='CONFIG.SYNTAX'
             )
-        return
 
     except PermissionError as exc:
         errorHandling.setError(
@@ -423,7 +462,6 @@ Current Errors:
             origin=fileName,
             category='FILESYSTEM.PERMISSION'
             )
-        return
 
     except Exception as exc:
         errorHandling.setError(
@@ -431,4 +469,60 @@ Current Errors:
             origin=fileName,
             category='UNKNOWN'
             )
+    
+    restoreYaml(fileName="settings.yaml", data=currentData) # Also restore if an exception occured.
+
+def appendEntry(entryName: str, entryData: Dict):
+    """
+    Appends a new entry to the entries.yaml file.
+
+    args:
+        entryName (str): The name of the entry to append.
+        entryData (Dict): The data of the entry to append.
+
+    returns:
+        None
+    """
+    entry = {}
+    entry[entryName] = entryData
+
+    filePath = getYamlFilePath("entries.yaml")
+
+    currentPosition = None
+    try:
+        with open(filePath, "a", encoding= "UTF-8") as file:
+            currentPosition = file.tell() # Get the current end of the file
+            file.write("\n") # Add a new line
+
+        with open(filePath, "a", encoding="UTF-8") as file: # Reopen file so newline doesnt get over written
+            yaml.dump(entry, file, default_flow_style=False, allow_unicode=True)
+
+        validateYaml()
+        if errorHandling.errorExists():
+            print("Boing")
+            restoreYaml(fileName="entries.yaml", truncatePosition=currentPosition)
         return
+    
+    except yaml.YAMLError as exc:
+        errorHandling.setError(
+            message=exc,
+            origin="entries.yaml",
+            category='CONFIG.SYNTAX'
+            )
+
+    except PermissionError as exc:
+        errorHandling.setError(
+            message=exc,
+            origin="entries.yaml",
+            category='FILESYSTEM.PERMISSION'
+            )
+
+    except Exception as exc:
+        errorHandling.setError(
+            message=exc,
+            origin="entries.yaml",
+            category='UNKNOWN'
+            )
+    
+    restoreYaml(fileName="entries.yaml", truncatePosition=currentPosition)
+

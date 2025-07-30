@@ -1,3 +1,4 @@
 server:
   port: 5000
   secretKey: MOFhtYEp1HyZE_YAjIl6uNfzxmnhlTClu04zfwIBxnc
+  debug: true
