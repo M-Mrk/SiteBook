@@ -267,6 +267,9 @@ def loadEntriesYaml():
         try:
             entries = yaml.safe_load(file)
 
+            if entries is None:
+                return {}
+
             for name, entry in entries.items(): # Converting Entries with just the name into dict so it does not cause problems
                 if entry is None: # check if entries data is None 
                     entries[name] = {} # create empty dict

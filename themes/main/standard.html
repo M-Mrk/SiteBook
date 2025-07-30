@@ -101,6 +101,12 @@
                 </div>
             </div>
         {% endfor %}
+        {% if entries|length == 0 %}
+            <div class="col-12 text-center">
+                <i class="bi bi-book" style="font-size: 8rem;"></i>
+                <p class="text-muted">No entries found. Add some! Either via entries.yaml or via the plus up top.</p>
+            </div>
+        {% endif %}
     </div>
 </div>
 
