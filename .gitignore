@@ -1,3 +1,9 @@
+# app specific files
+entries.yaml
+settings.yaml
+entriesDev.yaml
+settingsDev.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 app/__pycache__/

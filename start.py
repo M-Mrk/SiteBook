@@ -4,6 +4,12 @@ from app.yamlServices import validateYaml, createExampleEntriesYaml, createExamp
 from app import errorHandling
 from app.settingHandling import getSettings, checkIfExistsOrIsEmpty, setAndWriteSetting
 
+def restart():
+    import sys, os
+    print(Fore.YELLOW + "Restarting SiteBook...")
+    pythonInterpreter = sys.executable
+    os.execl(pythonInterpreter, pythonInterpreter, *sys.argv)
+
 print("Starting SiteBook...")
 
 init(autoreset=True) #colorama init
@@ -11,10 +17,11 @@ init(autoreset=True) #colorama init
 # Create example entries.yaml if it does not exist
 if createExampleEntriesYaml():
     print(Fore.YELLOW + "Created example entries.yaml.")
-    #TODO find a way to restart and restart automatically, yes but not here
+    restart()
 
 if createExampleSettingsYaml():
     print(Fore.YELLOW + "Created example settings.yaml.")
+    restart()
 
 validateYaml() # Validate YAML files
 

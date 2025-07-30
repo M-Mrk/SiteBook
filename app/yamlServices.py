@@ -87,7 +87,6 @@ def createExampleSettingsYaml():
         with open(settingsPath, "w", encoding="utf-8") as file:
             example_content = """# Example settings.yaml
 # Configure your SiteBook application settings here
-#
 """
             file.write(example_content)
         
@@ -447,7 +446,7 @@ def writeYamlFile(fileName: str, data: Dict, filterNoneValues: bool = True):
         validateYaml()
         if errorHandling.errorExists(): # Check if an error was raised.
             restoreYaml(fileName="settings.yaml", data=currentData) # Restore the original content
-            return
+        return
 
     except yaml.YAMLError as exc:
         errorHandling.setError(
