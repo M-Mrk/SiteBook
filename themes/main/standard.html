@@ -67,7 +67,7 @@
                     <!-- Picture section -->
                     <div class="bg-light d-flex align-items-center justify-content-center p-3 picture-section">
                         {% if entry.get("picture") %}
-                            <img src="{{ entry.get('picture') }}" alt="{{ name }}" class="img-fluid rounded" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                            <img src="{{ getPictureLink(entry.get('picture')) }}" alt="{{ name }}" class="img-fluid rounded" style="max-height: 100%; max-width: 100%; object-fit: contain;">
                         {% else %}
                             <div class="text-muted">
                                 <i style="font-size: 3rem;" class="bi bi-image"></i>

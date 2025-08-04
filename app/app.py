@@ -1,14 +1,14 @@
 from flask import Flask, render_template, redirect, flash, request
 from .yamlServices import loadEntriesYaml, validateYaml, appendEntry
 from . import errorHandling
-from .settingHandling import getSettings, checkIfExistsOrIsEmpty
-from .services import getEntryOptions
+from .settingHandling import getSettings, checkIfSettingExistsOrIsEmpty
+from .services import getEntryOptions, getPictureLink
 import os
 from functools import wraps
 import sys
 from threading import Timer
 
-app = Flask(__name__, template_folder="../themes")
+app = Flask(__name__, template_folder="../themes", static_folder="../images")
 
 def checkIfStartUpPrevented(f):
     @wraps(f)
@@ -21,7 +21,7 @@ def checkIfStartUpPrevented(f):
 
 def getTheme():
     settings = getSettings()
-    if not checkIfExistsOrIsEmpty('theme.name'):
+    if not checkIfSettingExistsOrIsEmpty('theme.name'):
         return "standard"
     else:
         baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -57,6 +57,13 @@ def home():
     entries = loadEntriesYaml()
     if errorHandling.errorExists():
         return redirect("/error")
+    
+    for entry in entries: # Check if all images actually exist
+        if getattr(entry, "picture", None):
+            getPictureLink(entry.picture)
+    if errorHandling.errorExists():
+        return redirect("/error")
+    
     return render_template(f"main/{getTheme()}.html", entries=entries, settings=getSettings())
 
 @app.route("/add", methods=["POST"])
@@ -146,7 +153,7 @@ def power():
 
 @app.context_processor
 def contextProcessorFunction():
-    return dict(getEntryOptions=getEntryOptions) # Make getEntryOptions available in templates
+    return dict(getEntryOptions=getEntryOptions, getPictureLink=getPictureLink) # Make getEntryOptions available in templates
 
 @app.errorhandler(404)
 def unknownPage(*args):

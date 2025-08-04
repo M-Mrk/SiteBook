@@ -1,5 +1,7 @@
 from typing import get_type_hints, get_origin, get_args, Union
 from .validationModels.entries import Entry
+from . import errorHandling
+import os
 
 def getInputTypeFromHint(hint):
     """
@@ -84,3 +86,33 @@ def getEntryOptions():
                 - inputType (str): The type of input expected for this entry option (e.g. bool, string, integer, etc).
     """
     return entryOptions
+
+def getPictureLink(pictureEntry):
+    """
+    Gets the filepath of the image if pictureEntry is not a link.
+
+    args:
+        pictureEntry: What is set in entry.picture
+
+    returns:
+        str: Which can be directly used as image source
+    """
+    if not pictureEntry:
+        errorHandling.setError(message="No Picture Entry was provided when trying to get Link", category="SERVICES.TYPE")
+        return None
+    if "http" in pictureEntry.lower(): # Is a link to a picture
+        return pictureEntry
+    else: # Is not a link but a image name
+        sliced = pictureEntry.split(".")
+        if len(sliced) < 2:
+            errorHandling.setError(message=f"Picture file name is wrongly formatted: {pictureEntry}", category="CONFIG.SYNTAX")
+            return None
+        
+        baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        imageDir = os.path.join(baseDir, "images")
+        imagePath = os.path.join(imageDir, pictureEntry)
+        if not os.path.exists(imagePath):
+            errorHandling.setError(message=f"Picture: {pictureEntry} does not exist", category="CONFIG.MISSING")
+            return None
+
+        return f"images/{pictureEntry}"

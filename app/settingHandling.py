@@ -19,7 +19,7 @@ def getSettings():
         return SettingsModel()  # Return empty SettingsModel instead of dict
     return SettingsModel(**settings)
 
-def checkIfExistsOrIsEmpty(settingsName):
+def checkIfSettingExistsOrIsEmpty(settingsName):
     """
     Checks if a setting exists and is not empty.
     Use to check if there is a corresponding setting set or whether it should use an default value (See app.py's getTheme() for an example). 

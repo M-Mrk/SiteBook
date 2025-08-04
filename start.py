@@ -2,7 +2,7 @@ from colorama import Fore, init
 
 from app.yamlServices import validateYaml, createExampleEntriesYaml, createExampleSettingsYaml
 from app import errorHandling
-from app.settingHandling import getSettings, checkIfExistsOrIsEmpty, setAndWriteSetting
+from app.settingHandling import getSettings, checkIfSettingExistsOrIsEmpty, setAndWriteSetting
 
 def restart():
     import sys, os
@@ -37,11 +37,11 @@ print("Starting Flask app...")
 # Initialization of flask app here
 # Settings which will get writtent if they do not exist
 try:
-    if not checkIfExistsOrIsEmpty('server.port'):
+    if not checkIfSettingExistsOrIsEmpty('server.port'):
         print(Fore.YELLOW + "No port set. Setting to 5000...")
         setAndWriteSetting(settingsName='server.port', value=5000)
 
-    if not checkIfExistsOrIsEmpty('server.secretKey'):
+    if not checkIfSettingExistsOrIsEmpty('server.secretKey'):
         print(Fore.YELLOW + "No secretKey set. Generating a new one...")
         import secrets
         setAndWriteSetting(settingsName='server.secretKey', value=secrets.token_urlsafe(32))
@@ -49,11 +49,11 @@ try:
     app.secret_key = settings.server.secretKey
 
     # Settings to assume defaults if not set
-    if not checkIfExistsOrIsEmpty('server.host'):
+    if not checkIfSettingExistsOrIsEmpty('server.host'):
         print("No host set. Using default of 127.0.0.1...")
         settings.server.host = '127.0.0.1'
 
-    if not checkIfExistsOrIsEmpty('server.debug'):
+    if not checkIfSettingExistsOrIsEmpty('server.debug'):
         settings.server.debug = False
 
     print(Fore.YELLOW + f"Using port: {settings.server.port} and host: {settings.server.host}")

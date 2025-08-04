@@ -2,6 +2,7 @@ from pydantic import ValidationError
 from typing import Dict
 from .validationModels import EntryModel, SettingsModel
 from . import errorHandling
+from .services import getPictureLink
 import yaml
 import os
 from colorama import Fore
