@@ -7,7 +7,10 @@ import os
 from functools import wraps
 import sys
 from threading import Timer
+from werkzeug.utils import secure_filename
+from flask import redirect, url_for
 
+baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 app = Flask(__name__, template_folder="../themes", static_folder="../images")
 
 def checkIfStartUpPrevented(f):
@@ -65,6 +68,37 @@ def home():
         return redirect("/error")
     
     return render_template(f"main/{getTheme()}.html", entries=entries, settings=getSettings())
+
+@app.route("/add/picture", methods=["POST"])
+def uploadPicture():
+    if 'file' not in request.files:
+        flash(message="No File uploaded", category="warning")
+        return redirect(request.referrer or url_for('index')), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        flash(message="No File uploaded", category="warning")
+        return redirect(request.referrer or url_for('index')), 400
+
+    # Security: Use secure_filename to prevent directory traversal
+    filename = secure_filename(file.filename)
+    
+    # Optional: Validate file type
+    allowedExtensions = {'png', 'jpg', 'jpeg', 'gif', 'svg'}
+    if not filename.lower().endswith(tuple(allowedExtensions)): # Check if file has allowed extension
+        flash(message="Invalid file type", category="error")
+        return redirect(request.referrer or url_for('index')), 400
+
+    imagesDir = os.path.join(baseDir, 'images')
+    os.makedirs(imagesDir, exist_ok=True)  # Ensure directory exists
+    
+    try:
+        file.save(os.path.join(imagesDir, filename))
+        flash(message="File uploaded successfully", category="success")
+        return redirect(request.referrer or url_for('index')), 200
+    except Exception as e:
+        flash(message="Upload failed", category="error")
+        return redirect(request.referrer or url_for('index')), 500
 
 @app.route("/add", methods=["POST"])
 def add():

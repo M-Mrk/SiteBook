@@ -493,16 +493,16 @@ def appendEntry(entryName: str, entryData: Dict):
 
     currentPosition = None
     try:
-        with open(filePath, "a", encoding= "UTF-8") as file:
-            currentPosition = file.tell() # Get the current end of the file
-            file.write("\n") # Add a new line
-
-        with open(filePath, "a", encoding="UTF-8") as file: # Reopen file so newline doesnt get over written
+        with open(filePath, "r+", encoding="UTF-8") as file:
+            currentPosition = file.tell()  # Get the current end of the file
+            existingContent = file.read().strip()  # Read and strip trailing whitespace
+            file.seek(0, os.SEEK_END)  # Move to the end of the file
+            if existingContent:  # Add a newline only if the file is not empty
+                file.write("\n")
             yaml.dump(entry, file, default_flow_style=False, allow_unicode=True)
 
         validateYaml()
         if errorHandling.errorExists():
-            print("Boing")
             restoreYaml(fileName="entries.yaml", truncatePosition=currentPosition)
         return
     
@@ -528,4 +528,3 @@ def appendEntry(entryName: str, entryData: Dict):
             )
     
     restoreYaml(fileName="entries.yaml", truncatePosition=currentPosition)
-

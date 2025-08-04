@@ -97,22 +97,25 @@ def getPictureLink(pictureEntry):
     returns:
         str: Which can be directly used as image source
     """
-    if not pictureEntry:
-        errorHandling.setError(message="No Picture Entry was provided when trying to get Link", category="SERVICES.TYPE")
-        return None
-    if "http" in pictureEntry.lower(): # Is a link to a picture
-        return pictureEntry
-    else: # Is not a link but a image name
-        sliced = pictureEntry.split(".")
-        if len(sliced) < 2:
-            errorHandling.setError(message=f"Picture file name is wrongly formatted: {pictureEntry}", category="CONFIG.SYNTAX")
+    try:
+        if not pictureEntry:
+            errorHandling.setError(message="No Picture Entry was provided when trying to get Link", category="SERVICES.TYPE")
             return None
-        
-        baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        imageDir = os.path.join(baseDir, "images")
-        imagePath = os.path.join(imageDir, pictureEntry)
-        if not os.path.exists(imagePath):
-            errorHandling.setError(message=f"Picture: {pictureEntry} does not exist", category="CONFIG.MISSING")
-            return None
-
-        return f"images/{pictureEntry}"
+        if "http" in pictureEntry.lower(): # Is a link to a picture
+            return pictureEntry
+        else: # Is not a link but a image name
+            sliced = pictureEntry.split(".")
+            if len(sliced) < 2:
+                errorHandling.setError(message=f"Picture file name is wrongly formatted: {pictureEntry}", category="CONFIG.SYNTAX")
+                return None
+            
+            baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            imageDir = os.path.join(baseDir, "images")
+            editedPictureEntry = pictureEntry.replace(" ", "_") # Replace all spaces with underlines
+            imagePath = os.path.join(imageDir, editedPictureEntry)
+            if not os.path.exists(imagePath):
+                errorHandling.setError(message=f"Picture: {pictureEntry} does not exist", category="CONFIG.MISSING")
+                return None
+            return f"images/{editedPictureEntry}"
+    except Exception as e:
+        print(e)
