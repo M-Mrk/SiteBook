@@ -1,0 +1,44 @@
+# Example entries.yaml
+# Add your entries here in the format:
+# entry_name:
+#   url: "https://example.com"
+#   description: "A brief description"
+#
+# Example:
+# homeassistant:
+#   url: "http://192.168.2.15:8123"
+#   description: "My Home Assistant instance"
+
+VSCode:
+  picture: https://code.visualstudio.com/assets/images/code-stable.png
+  url: https://vscode.dev
+
+Home Assistant:
+  description: Home Automation
+  url: http://homeassistant.local:8123
+  picture: https://design.home-assistant.io/images/brand/logo.png
+
+Proxmox:
+  description: Virtualization Server
+  url: https://proxmox.com
+  picture: https://www.proxmox.com/images/proxmox/Proxmox_logo_standard_hex_400px.png#joomlaImage://local-images/proxmox/Proxmox_logo_standard_hex_400px.png?width=400&height=60
+
+GitHub:
+  description: Code Hosting Platform
+  url: https://github.com
+  picture: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+
+Nextcloud:
+  description: Private Cloud Storage
+  url: https://nextcloud.com
+  picture: https://nextcloud.com/c/uploads/2022/08/nextcloud-logo-icon.svg
+
+Portainer:
+  description: Docker Management UI
+  url: https://www.portainer.io
+  picture: https://cdn.prod.website-files.com/685ddfde8f36a9682093fa2b/685ddfde8f36a9682093fa94_Portainer%20-%20Webclip.jpg
+
+Pi-hole:
+  description: Networkwide Ad Blocking
+  url: https://pi-hole.net
+  picture: https://wp-cdn.pi-hole.net/wp-content/uploads/2023/05/pihole-logo-horizontal-white-e1683321640117.png

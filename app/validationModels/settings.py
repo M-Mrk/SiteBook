@@ -6,6 +6,7 @@ class FlaskSettings(BaseModel):
     port: Optional[int] = None
     host: Optional[str] = None
     debug: Optional[bool] = None
+    threads: Optional[int] = None
 
     class Config:
         extra = 'forbid'

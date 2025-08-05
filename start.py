@@ -1,4 +1,5 @@
 from colorama import Fore, init
+import waitress
 
 from app.yamlServices import validateYaml, createExampleEntriesYaml, createExampleSettingsYaml
 from app import errorHandling
@@ -37,28 +38,38 @@ print("Starting Flask app...")
 # Initialization of flask app here
 # Settings which will get writtent if they do not exist
 try:
+    settings = getSettings()
+
     if not checkIfSettingExistsOrIsEmpty('server.port'):
         print(Fore.YELLOW + "No port set. Setting to 5000...")
         setAndWriteSetting(settingsName='server.port', value=5000)
+        settings = getSettings()
 
     if not checkIfSettingExistsOrIsEmpty('server.secretKey'):
         print(Fore.YELLOW + "No secretKey set. Generating a new one...")
         import secrets
         setAndWriteSetting(settingsName='server.secretKey', value=secrets.token_urlsafe(32))
-    settings = getSettings()
+        settings = getSettings()
     app.secret_key = settings.server.secretKey
 
-    # Settings to assume defaults if not set
     if not checkIfSettingExistsOrIsEmpty('server.host'):
-        print("No host set. Using default of 127.0.0.1...")
-        settings.server.host = '127.0.0.1'
+        print("No host set. Setting to 127.0.0.1...")
+        setAndWriteSetting(settingsName='server.host', value='127.0.0.1')
+        settings = getSettings()
+
+    if not checkIfSettingExistsOrIsEmpty('server.threads'):
+        print(Fore.YELLOW + "No amount of threads set. Setting to 4...")
+        setAndWriteSetting(settingsName='server.threads', value=4)
+        settings = getSettings()
 
     if not checkIfSettingExistsOrIsEmpty('server.debug'):
-        settings.server.debug = False
+        setAndWriteSetting(settingsName='server.debug', value=False)
+        settings = getSettings()
 
-    print(Fore.YELLOW + f"Using port: {settings.server.port} and host: {settings.server.host}")
+    print(Fore.YELLOW + f"Starting on http://{settings.server.host}:{settings.server.port} with debug {settings.server.debug} and threads {settings.server.threads}.")
     print("Output now from flask app:")
-    app.run(debug=settings.server.debug, port=settings.server.port, host=settings.server.host)
+    # app.run(debug=settings.server.debug, port=settings.server.port, host=settings.server.host)
+    waitress.serve(app, host=settings.server.host, port=settings.server.port, threads=settings.server.threads)
 
 except Exception as e:
     errorHandling.setErrorPreventedStart()
