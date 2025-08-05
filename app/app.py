@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, flash, request
 from .yamlServices import loadEntriesYaml, validateYaml, appendEntry, getRawYaml, writeRawYaml, validateYamlFromUser
 from . import errorHandling
-from .settingHandling import getSettings, checkIfSettingExistsOrIsEmpty
+from .settingHandling import getSettings, checkIfSettingExistsOrIsEmpty, setAndWriteSetting
 from .services import getEntryOptions, getPictureLink
 import os
 from functools import wraps
@@ -9,8 +9,11 @@ import sys
 from threading import Timer
 from werkzeug.utils import secure_filename
 from flask import redirect, url_for
+from colorama import Fore, init
 
-baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+init(autoreset=True) #colorama init
+
+baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # Base directory of the app
 app = Flask(__name__, template_folder="../themes", static_folder="../images")
 
 def checkIfStartUpPrevented(f):
@@ -25,6 +28,8 @@ def checkIfStartUpPrevented(f):
 def getTheme():
     settings = getSettings()
     if not checkIfSettingExistsOrIsEmpty('theme.name'):
+        print(Fore.YELLOW + "No theme set. Setting to default 'standard'.")
+        setAndWriteSetting(settingsName='theme.name', value='standard')
         return "standard"
     else:
         baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
