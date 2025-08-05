@@ -17,6 +17,9 @@ def getYamlFilePath(fileName: str) -> str:
     returns:
         str: The absolute path to the YAML file.
     """
+    fileNameSplit = fileName.split(".")
+    if not fileNameSplit[-1] == "yaml":
+        raise ValueError(f"Invalid file extension for {fileName}. Expected a '.yaml' file.")
     baseDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(baseDir, fileName)
 
@@ -248,6 +251,64 @@ def validateYaml():
     validateEntries()
     validateSettings()
 
+def validateYamlFromUser(data: str, yamlFileName: str):
+    try:
+        parsedData = yaml.safe_load(data)
+        
+        if yamlFileName == "entries" or yamlFileName == "entries.yaml":
+            EntryModel.model_validate(parsedData)
+            
+        elif yamlFileName == "settings" or yamlFileName == "settings.yaml":
+            SettingsModel.model_validate(parsedData)
+            
+        return False
+    
+    except yaml.YAMLError as exc:
+        errorHandling.setError(
+            message=exc,
+            origin=yamlFileName,
+            category="CONFIG.SYNTAX"
+        )
+        # Format YAML error for better display
+        error_msg = str(exc)
+        if hasattr(exc, 'problem_mark') and exc.problem_mark:
+            line = exc.problem_mark.line + 1
+            column = exc.problem_mark.column + 1
+            error_msg = f"Line {line}, Column {column}: {exc.problem or 'YAML syntax error'}"
+        
+        return {"success": False, "reason": "YAML syntax error", "details": error_msg}
+
+    except ValidationError as exc:
+        errorHandling.setError(
+            message=exc,
+            origin=yamlFileName,
+            category="VALIDATION.STRUCTURE"
+        )
+        # Format validation error for better display
+        error_details = []
+        for error in exc.errors():
+            location = " -> ".join(str(loc) for loc in error['loc']) if error['loc'] else 'root'
+            error_details.append(f"Field '{location}': {error['msg']}")
+        
+        formatted_details = "\n".join(error_details)
+        return {"success": False, "reason": "Validation error", "details": formatted_details}
+
+    except PermissionError as exc:
+        errorHandling.setError(
+            message=exc,
+            origin=yamlFileName,
+            category="FILESYSTEM.PERMISSION"
+        )
+        return {"success": False, "reason": "Permission error", "details": str(exc)}
+
+    except Exception as exc:
+        errorHandling.setError(
+            message=exc,
+            origin=yamlFileName,
+            category="UNKNOWN"
+        )
+        return {"success": False, "reason": "Unknown error", "details": str(exc)}
+
 def loadEntriesYaml():
     """
     Loads, validates and returns all entries from entries.yaml
@@ -271,9 +332,9 @@ def loadEntriesYaml():
             if entries is None:
                 return {}
 
-            for name, entry in entries.items(): # Converting Entries with just the name into dict so it does not cause problems
-                if entry is None: # check if entries data is None 
-                    entries[name] = {} # create empty dict
+            for name, entry in entries.items():
+                if entry is None:
+                    entries[name] = {}
 
             return entries
         except yaml.YAMLError as exc:
@@ -528,3 +589,57 @@ def appendEntry(entryName: str, entryData: Dict):
             )
     
     restoreYaml(fileName="entries.yaml", truncatePosition=currentPosition)
+
+def getRawYaml(fileName: str):
+    try:
+        filePath = getYamlFilePath(fileName=fileName)
+        
+        if not os.path.exists(filePath):
+            errorHandling.setError(message=f"Whilst trying to get raw yaml the given fileName: ({fileName}) did not return an existing file at {filePath}", origin=fileName, category="FILESYSTEM.MISSING")
+            return None
+        
+        with open(file=filePath, mode="r", encoding="UTF-8") as file:
+            return file.read()
+        
+    except PermissionError as exc:
+            errorHandling.setError(
+                message=exc,
+                origin=fileName,
+                category="FILESYSTEM.PERMISSION"
+            )
+            return None
+
+    except Exception as exc:
+        errorHandling.setError(
+            message=exc,
+            origin=fileName,
+            category="UNKNOWN"
+        )
+        return None
+    
+def writeRawYaml(fileName: str, rawYaml: str):
+    try:
+        filePath = getYamlFilePath(fileName=fileName)
+        
+        if not os.path.exists(filePath):
+            errorHandling.setError(message=f"Whilst trying to write raw yaml the given fileName: ({fileName}) did not return an existing file at {filePath}", category="FILESYSTEM.MISSING")
+            return None
+        
+        with open(file=filePath, mode="w", encoding="UTF-8") as file:
+            file.write(rawYaml)
+            
+    except PermissionError as exc:
+            errorHandling.setError(
+                message=exc,
+                origin=fileName,
+                category="FILESYSTEM.PERMISSION"
+            )
+            return None
+
+    except Exception as exc:
+        errorHandling.setError(
+            message=exc,
+            origin=fileName,
+            category="UNKNOWN"
+        )
+        return None

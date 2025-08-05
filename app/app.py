@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, flash, request
-from .yamlServices import loadEntriesYaml, validateYaml, appendEntry
+from .yamlServices import loadEntriesYaml, validateYaml, appendEntry, getRawYaml, writeRawYaml, validateYamlFromUser
 from . import errorHandling
 from .settingHandling import getSettings, checkIfSettingExistsOrIsEmpty
 from .services import getEntryOptions, getPictureLink
@@ -33,13 +33,13 @@ def getTheme():
         themeBaseDir = os.path.join(themesDir, 'base')
         themeMainDir = os.path.join(themesDir, 'main')
         themeErrorDir = os.path.join(themesDir, 'error')
-        themeSettingsDir = os.path.join(themesDir, 'settings')
+        themeEditDir = os.path.join(themesDir, 'edit')
         
         paths = [
             os.path.join(themeBaseDir, f"{settings.theme.name}.html"),
             os.path.join(themeMainDir, f"{settings.theme.name}.html"), 
             os.path.join(themeErrorDir, f"{settings.theme.name}.html"),
-            os.path.join(themeSettingsDir, f"{settings.theme.name}.html")
+            os.path.join(themeEditDir, f"{settings.theme.name}.html")
         ]
         fileNotFound = False
         falsePaths = []
@@ -70,6 +70,7 @@ def home():
     return render_template(f"main/{getTheme()}.html", entries=entries, settings=getSettings())
 
 @app.route("/add/picture", methods=["POST"])
+@checkIfStartUpPrevented
 def uploadPicture():
     if 'file' not in request.files:
         flash(message="No File uploaded", category="warning")
@@ -101,6 +102,7 @@ def uploadPicture():
         return redirect(request.referrer or url_for('index')), 500
 
 @app.route("/add", methods=["POST"])
+@checkIfStartUpPrevented
 def add():
     print(request.form)
     dataDict = {}
@@ -135,6 +137,39 @@ def fErrorPage():
     if not errors:
         return redirect("/")
     return render_template(f"error/{getTheme()}.html", errors=errors, startUpPrevented=errorHandling.errorPreventedStart(), settings=getSettings)
+
+@app.route("/edit")
+@checkIfStartUpPrevented
+def editorPage():
+    rawEntriesYaml = getRawYaml("entries.yaml")
+    rawSettingsYaml = getRawYaml("settings.yaml")
+    return render_template(f"edit/{getTheme()}.html", rawEntriesYaml=rawEntriesYaml, rawSettingsYaml=rawSettingsYaml, settings=getSettings())
+
+@app.route("/writeYaml", methods=["POST"])
+@checkIfStartUpPrevented
+def writeRawYamlFromUser():
+    data = request.form.get('data')
+    fileName = request.form.get('fileName')
+    
+    if not data or not fileName:
+        return {"success": False, "reason": "Missing data or fileName"}, 400
+    
+    try:
+        validationError = validateYamlFromUser(data=data, yamlFileName=fileName)
+        if validationError:  # If there's an error
+            return validationError, 400
+        
+        writeRawYaml(fileName=fileName, rawYaml=data)
+        
+        if errorHandling.errorExists():
+            errors = errorHandling.getErrors()
+            error_details = "\n".join([f"{error.category}: {error.message}" for error in errors[-3:]])  # Show last 3 errors
+            return {"success": False, "reason": "Error writing YAML file", "details": error_details}, 500
+        else:
+            return {"success": True}, 200
+            
+    except Exception as e:
+        return {"success": False, "reason": "Unexpected error", "details": str(e)}, 500
 
 def stopApp():
     import time

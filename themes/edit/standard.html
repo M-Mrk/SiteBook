@@ -1,0 +1,235 @@
+{% extends "base/standard.html" %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
+<style>
+    .editor-container {
+        height: calc(100vh - 320px);
+        min-height: 600px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .file-tabs {
+        border-bottom: 1px solid #ddd;
+    }
+    .file-tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        border: none;
+        background: #f8f9fa;
+        border-bottom: 2px solid transparent;
+    }
+    .file-tab.active {
+        background: white;
+        border-bottom-color: #007bff;
+    }
+    .error-details {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #dc3545;
+        border-radius: 4px;
+        padding: 15px;
+        background-color: #f8d7da;
+        color: #721c24;
+        font-size: 0.95em;
+        line-height: 1.4;
+    }
+    .error-details pre {
+        background-color: rgba(255, 255, 255, 0.8) !important;
+        border: 1px solid #dc3545;
+        color: #721c24 !important;
+        margin: 10px 0;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .error-item {
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f5c6cb;
+    }
+    .error-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .error-category {
+        font-weight: bold;
+        color: #dc3545;
+    }
+    .error-origin {
+        font-style: italic;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="bi bi-pencil-square me-2"></i>YAML Editor</h2>
+            
+            <!-- File Tabs -->
+            <div class="file-tabs d-flex">
+                <button class="file-tab active" onclick="switchFile('entries')">entries.yaml</button>
+                <button class="file-tab" onclick="switchFile('settings')">settings.yaml</button>
+            </div>
+            
+            <!-- Status Message -->
+            <div id="status-message" class="mt-3" style="display: none;">
+            </div>
+            
+            <!-- Editor Container -->
+            <div class="editor-container" id="editor"></div>
+            
+            <!-- Action Buttons -->
+            <div class="mt-3">
+                <button class="btn btn-success" onclick="saveFile()">
+                    <i class="bi bi-save me-2"></i>Save
+                </button>
+                <button class="btn btn-secondary" onclick="resetFile()">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let editor;
+let currentFile = 'entries';
+let originalContent = {
+    entries: {{ rawEntriesYaml | tojson }},
+    settings: {{ rawSettingsYaml | tojson }}
+};
+
+require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs' } });
+
+require(['vs/editor/editor.main'], function () {
+    editor = monaco.editor.create(document.getElementById('editor'), {
+        value: originalContent.entries,
+        language: 'yaml',
+        theme: 'vs',
+        automaticLayout: true,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        fontSize: 14,
+        tabSize: 2
+    });
+});
+
+function switchFile(fileName) {
+    // Update tabs
+    document.querySelectorAll('.file-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Switch editor content
+    currentFile = fileName;
+    editor.setValue(originalContent[fileName]);
+}
+
+function saveFile() {
+    const content = editor.getValue();
+    const fileName = currentFile + '.yaml';
+    
+    // Show loading state
+    showStatus('Saving file...', 'info');
+    
+    fetch('/writeYaml', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'data': content,
+            'fileName': fileName
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showStatus(`${fileName} saved successfully!`, 'success');
+            originalContent[currentFile] = content; // Update original content
+        } else {
+            const errorMsg = data.reason || 'Unknown error';
+            showStatus(errorMsg, 'error', data.details);
+        }
+    })
+    .catch(error => {
+        let errorMessage = `Error saving ${fileName}: ${error.message}`;
+        let errorDetails = null;
+        
+        if (error.message.includes('HTTP 400')) {
+            errorMessage = `Validation failed for ${fileName}`;
+            errorDetails = 'Check your YAML syntax and structure.';
+        } else if (error.message.includes('HTTP 500')) {
+            errorMessage = `Server error while saving ${fileName}`;
+            errorDetails = 'The server encountered an error processing your request.';
+        }
+        
+        showStatus(errorMessage, 'error', errorDetails);
+    });
+}
+
+function resetFile() {
+    editor.setValue(originalContent[currentFile]);
+    showStatus('File reset', 'info');
+}
+
+function showStatus(message, type, details = null) {
+    const statusDiv = document.getElementById('status-message');
+    let content = '';
+    
+    if (type === 'error') {
+        let errorContent = `<div class="mt-2">${message}</div>`;
+        
+        if (details) {
+            let cleanDetails = details;
+            if (cleanDetails.includes('ValidationError')) {
+                cleanDetails = cleanDetails.replace(/ValidationError.*?\n/, '');
+            }
+            errorContent += `<hr><div class="error-details"><strong>Details:</strong><pre class="mt-2 p-2 bg-light rounded" style="font-size: 0.9em; white-space: pre-wrap;">${cleanDetails}</pre></div>`;
+        }
+        
+        content = `
+            <div class="alert alert-danger alert-dismissible fade show">
+                <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Error</h5>
+                ${errorContent}
+                <button type="button" class="btn-close" onclick="dismissStatus()" aria-label="Close"></button>
+            </div>
+        `;
+    } else {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-info';
+        const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-info-circle-fill';
+        content = `
+            <div class="alert ${alertClass} alert-dismissible fade show">
+                <i class="bi ${icon} me-2"></i>${message}
+                <button type="button" class="btn-close" onclick="dismissStatus()" aria-label="Close"></button>
+            </div>
+        `;
+    }
+    
+    statusDiv.innerHTML = content;
+    statusDiv.style.display = 'block';
+    
+    // Auto-hide after 5 seconds for success/info messages
+    if (type !== 'error') {
+        setTimeout(() => {
+            dismissStatus();
+        }, 5000);
+    }
+}
+
+function dismissStatus() {
+    const statusDiv = document.getElementById('status-message');
+    statusDiv.style.display = 'none';
+}
+</script>
+{% endblock %}
