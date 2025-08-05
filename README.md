@@ -1,10 +1,16 @@
 # SiteBook
+<img width="1868" height="998" alt="Banner" src="https://github.com/user-attachments/assets/2da758ac-ff44-4835-b12d-920b82af44be" />
+
 
 # What is it?
-SiteBook is a webApp you self host in which you can list websites/services.
+SiteBook is a webApp you self host in which you can list websites/services, so that you dont have to remember them yourself.
+<img height="248.5" alt="image" src="https://github.com/user-attachments/assets/c2cdbe08-d806-41ba-bcf3-3877345c52a7" />
+<img height="248.5" alt="image" src="https://github.com/user-attachments/assets/3290d44a-be17-4623-aa7e-390c1ffd9eb8" />
+<img height="248.5" height="994" alt="image" src="https://github.com/user-attachments/assets/c5870417-f52e-4084-b660-a02c3035c519" />
+
 
 ## So why should I use it?
-If you have alot of self hosted applications or webSites you access frequently and can not or dont want to remember all of their IPs/URLs use SiteBook, so you only have to remember 1!
+If you have alot of self hosted applications or webSites you access frequently and can not or dont want to remember all of their IPs/URLs use SiteBook (and you can add descriptions for other related stuff which you cant remember), so you only have to remember 1!
 
 ## Features
 - Yaml configuration, for both the entries and the settings, which can be edited via the built in editor.
