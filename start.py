@@ -68,7 +68,8 @@ try:
 
     print(Fore.YELLOW + f"Starting on http://{settings.server.host}:{settings.server.port} with debug {settings.server.debug} and threads {settings.server.threads}.")
     print("Output now from flask app:")
-    # app.run(debug=settings.server.debug, port=settings.server.port, host=settings.server.host)
+    if settings.server.debug:
+        app.run(debug=settings.server.debug, port=settings.server.port, host=settings.server.host)
     waitress.serve(app, host=settings.server.host, port=settings.server.port, threads=settings.server.threads)
 
 except Exception as e:

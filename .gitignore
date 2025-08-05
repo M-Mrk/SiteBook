@@ -4,6 +4,7 @@ settings.yaml
 entriesDev.yaml
 settingsDev.yaml
 images/*
+!images/Logo/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
