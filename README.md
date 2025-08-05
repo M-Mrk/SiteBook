@@ -39,9 +39,23 @@ If you have alot of self hosted applications or webSites you access frequently a
 
 ### Structure
 - We will need 4 html files.
-- 1 per folder in themes/ (base, edit, error, main)
+- 1 per folder in themes/ (base, edit, error, main):
+``` text
+.
+└── SiteBook
+    ├── themes
+        └── base
+        │   └── ThemeName.html
+        └── edit
+        │   └── ThemeName.html
+        └── error
+        │   └── ThemeName.html
+        └── main
+            └── ThemeName.html
+```
 - The files will all need to be named like this: "*YourThemeName*.html"
-- Finally set ```` yaml
+- Finally set:
+``` yaml
 theme:
   name: *YourThemeName*
 ```
