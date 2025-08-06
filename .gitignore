@@ -3,8 +3,9 @@ entries.yaml
 settings.yaml
 entriesDev.yaml
 settingsDev.yaml
-images/*
 !images/Logo/
+images/*
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
